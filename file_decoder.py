@@ -1,6 +1,7 @@
 from os import walk, rename, path
 from tempfile import TemporaryFile
 from sys import argv
+from cryptography_engine import Decrypter, TokenError
 
 class FileDecoder:
 
@@ -22,24 +23,29 @@ class FileDecoder:
         if not path.isfile(file_path):
             raise FileNotFoundError
         
-        with open(file_path, 'r+b') as file:
-            file_content = file.read()
-            #file.seek(0)
-
-            self.tmp.write(file_content)
-            self.tmp.seek(0)
-
-            file_extension, passwd, *content = file_content.split(b'<>')
-
-        with open(file_path, 'w+b') as file:
-            file.write(b'<>'.join(content))
-
-        new_path, _ = path.splitext(file_path)
-        new_path += file_extension.decode('utf-8')
         try:
-            rename(file_path, new_path)
-        except PermissionError as err:
-            print(err)
+            with open(file_path, 'r+b') as file:
+                file_content = Decrypter(self.passwd).decrypt(file.read())
+                #file.seek(0)
+
+                self.tmp.write(file_content)
+                self.tmp.seek(0)
+
+                file_extension, *content = file_content.split(b'<>')
+        except TokenError as errtoken:
+            print(errtoken)
+
+        else:
+
+            with open(file_path, 'w+b') as file:
+                file.write(b'<>'.join(content))
+
+            new_path, _ = path.splitext(file_path)
+            new_path += file_extension.decode('utf-8')
+            try:
+                rename(file_path, new_path)
+            except PermissionError as err:
+                print(err)
 
     def decode_all(self, dir):
         if not path.isdir(dir):

@@ -1,4 +1,3 @@
-from os import rename
 from time import sleep
 from path_listener import PathListener
 from file_coder import FileCoder

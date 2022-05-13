@@ -1,6 +1,7 @@
 from os import rename, path
 from time import sleep
 from tempfile import TemporaryFile
+from cryptography_engine import Encrypter
 
 class FileCoder:
     def __init__(self, passwd = None) -> None:
@@ -22,8 +23,7 @@ class FileCoder:
         if retrys < 60:
             _ , extension = path.splitext(file_path)
             new_path = self._generate_file_name(file_path)
-            content = extension + '<>' + self.passwd + '<>'
-            content = content.encode('utf-8')
+            pre_content = f'{extension}<>'.encode('utf-8')
             #print(new_path)
             try:
                 rename(file_path, new_path)
@@ -40,7 +40,7 @@ class FileCoder:
                     self.tmp.seek(0)
                     #print(file_content)
                 with open(new_path, 'wb') as file:
-                    content = content + file_content
+                    content = self.encrypt_file_content(pre_content + file_content)
                     #print(content)
                     file.write(content)
         else:
@@ -54,11 +54,8 @@ class FileCoder:
             new_path = self._generate_file_name(new_path, count=count+1)
         return new_path
 
-    def encode_content_file(self, content):
-        added_content = f'header {self.passwd}'
-        new_content = added_content + '\n' + content
-
-        return new_content
+    def encrypt_file_content(self, content : bytes):
+        return Encrypter(self.passwd).encrypt(content)
 
     def restore_file(self):
         with open(self.file_path, 'wb') as file:
