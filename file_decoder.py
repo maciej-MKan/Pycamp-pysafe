@@ -15,14 +15,15 @@ class FileDecoder:
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        if exc_type:
+        if exc_type and not str(exc_val).startswith('No File'):
+            print(exc_type, exc_val)
             self.restore_file()
         self.tmp.close()
 
     def decode_file(self, file_path):
         self.file_path = file_path
         if not path.isfile(file_path):
-            raise FileNotFoundError
+            raise FileNotFoundError(f'No File {file_path}')
         
         try:
             with open(file_path, 'r+b') as file:
@@ -34,7 +35,7 @@ class FileDecoder:
 
                 file_extension, *content = file_content.split(b'<>')
         except TokenError as errtoken:
-            print(errtoken)
+            print('>>', errtoken)
 
         else:
 

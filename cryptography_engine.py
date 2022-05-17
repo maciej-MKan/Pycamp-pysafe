@@ -20,7 +20,7 @@ class KeyMaker:
         return base64.urlsafe_b64encode(self._kdf.derive(password))
 
 class Encrypter:
-    def __init__(self, password : str, salt = None) -> None:
+    def __init__(self, password : str, salt : bytes = None) -> None:
         self.password = password.encode('utf-8')
         self.salt = salt or b''
 

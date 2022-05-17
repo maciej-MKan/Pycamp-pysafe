@@ -1,11 +1,12 @@
-from os import rename, path
+from os import rename, path, walk
 from time import sleep
 from tempfile import TemporaryFile
 from cryptography_engine import Encrypter
 
 class FileCoder:
-    def __init__(self, passwd = None) -> None:
+    def __init__(self, passwd = None, salt = None) -> None:
         self.passwd = passwd or 'default'
+        self.salt = salt
         self.tmp = TemporaryFile()
         self.file_path = None
 
@@ -17,10 +18,10 @@ class FileCoder:
             self.restore_file()
         self.tmp.close()
 
-    def encode_file(self, file_path, retrys = 0):
+    def encode_file(self, file_path, _retrys = 0):
         self.file_path = file_path
 
-        if retrys < 60:
+        if _retrys < 60:
             _ , extension = path.splitext(file_path)
             new_path = self._generate_file_name(file_path)
             pre_content = f'{extension}<>'.encode('utf-8')
@@ -30,8 +31,8 @@ class FileCoder:
             except PermissionError as err:
                 print(err)
                 sleep(1)
-                retrys += 1
-                self.encode_file(file_path, retrys)
+                _retrys += 1
+                self.encode_file(file_path, _retrys)
             #print(content)
             else:
                 with open(new_path, 'rb') as file:
@@ -40,7 +41,7 @@ class FileCoder:
                     self.tmp.seek(0)
                     #print(file_content)
                 with open(new_path, 'wb') as file:
-                    content = self.encrypt_file_content(pre_content + file_content)
+                    content = Encrypter(self.passwd, self.salt).encrypt(pre_content + file_content)
                     #print(content)
                     file.write(content)
         else:
@@ -56,8 +57,20 @@ class FileCoder:
             new_path = self._generate_file_name(new_path, count=count+1)
         return new_path
 
-    def encrypt_file_content(self, content : bytes):
-        return Encrypter(self.passwd).encrypt(content)
+    def encode_all(self, dir):
+        if not path.isdir(dir):
+            raise FileNotFoundError
+
+        files_tree = walk(dir)
+        files = []
+        for files_path in files_tree:
+            for file in files_path[-1]:
+             files.append(f'{files_path[0]}\\{file}')
+
+        for file_path in files:
+            _, file_extension = path.splitext(file_path)
+            if not file_extension.startswith('.pys'):
+                self.encode_file(file_path)
 
     def restore_file(self):
         with open(self.file_path, 'wb') as file:
