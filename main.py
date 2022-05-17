@@ -1,3 +1,4 @@
+import argparse
 from time import sleep
 from path_listener import PathListener
 from file_coder import FileCoder
@@ -9,7 +10,7 @@ def created_file_handler(event):
             coder.encode_file(event.src_path)
 
 if __name__ == '__main__':
-    my_listener = PathListener(created_file_handler, path=r'.\Nowy_Folder')
+    my_listener = PathListener(created_file_handler,on_modified=print, path=r'.\Nowy_Folder')
     try:
         my_listener.start_listening()
         while True:

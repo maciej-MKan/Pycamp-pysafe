@@ -8,6 +8,7 @@ class FileDecoder:
     def __init__(self, passwd = None) -> None:
         self.passwd = passwd or 'default'
         self.file_path = None
+        self.new_path = None
         self.tmp = TemporaryFile()
 
     def __enter__(self):
@@ -44,8 +45,10 @@ class FileDecoder:
             new_path += file_extension.decode('utf-8')
             try:
                 rename(file_path, new_path)
+                self.new_path = new_path
             except PermissionError as err:
                 print(err)
+
 
     def decode_all(self, dir):
         if not path.isdir(dir):
@@ -81,6 +84,8 @@ if __name__ == '__main__':
         elif path.isdir(argv[1]):
             with FileDecoder() as decoder:
                 decoder.decode_all(argv[1])
+        else:
+            print('file error')
     else:
         with FileDecoder() as decoder:
             decoder.decode_all(r'.\Nowy_Folder')

@@ -48,7 +48,9 @@ class FileCoder:
     
     def _generate_file_name(self, cur_path : str, count : int = 0):
         new_path = cur_path.split('.')
-        new_path[-1] = 'pys' + f'({count})' if count else 'pys'
+        if count:
+            new_path[-2] += f'({count})'
+        new_path[-1] = 'pys'
         new_path = '.'.join(new_path)
         if path.isfile(new_path):
             new_path = self._generate_file_name(new_path, count=count+1)
