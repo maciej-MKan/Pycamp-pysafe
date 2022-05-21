@@ -5,8 +5,9 @@ from cryptography_engine import Decrypter, TokenError
 
 class FileDecoder:
 
-    def __init__(self, passwd = None) -> None:
+    def __init__(self, passwd : str = None, salt : bytes = None) -> None:
         self.passwd = passwd or 'default'
+        self.salt = salt
         self.file_path = None
         self.new_path = None
         self.tmp = TemporaryFile()
@@ -16,7 +17,7 @@ class FileDecoder:
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         if exc_type and not str(exc_val).startswith('No File'):
-            print(exc_type, exc_val)
+            #print(exc_type, exc_val)
             self.restore_file()
         self.tmp.close()
 
@@ -27,15 +28,15 @@ class FileDecoder:
         
         try:
             with open(file_path, 'r+b') as file:
-                file_content = Decrypter(self.passwd).decrypt(file.read())
-                #file.seek(0)
-
+                file_content = file.read()
                 self.tmp.write(file_content)
                 self.tmp.seek(0)
 
-                file_extension, *content = file_content.split(b'<>')
+                decrypted_content = Decrypter(self.passwd, self.salt).decrypt(file_content)
+
+                file_extension, *content = decrypted_content.split(b'<>')
         except TokenError as errtoken:
-            print('>>', errtoken)
+            raise errtoken
 
         else:
 
@@ -51,20 +52,31 @@ class FileDecoder:
                 print(err)
 
 
-    def decode_all(self, dir):
-        if not path.isdir(dir):
-            raise FileNotFoundError
-        
-        files_tree = walk(dir)
-        files = []
-        for files_path in files_tree:
-            for file in files_path[-1]:
-             files.append(f'{files_path[0]}\\{file}')
+    def decode_all(self, dirs):
+        bad_dir_list = []
 
-        for file_path in files:
-            _, file_extension = path.splitext(file_path)
-            if file_extension.startswith('.pys'):
-                self.decode_file(file_path)
+        for dir in dirs:
+            files = None
+            if path.isdir(dir):
+                files_tree = walk(dir)
+                files = []
+                for files_path in files_tree:
+                    for file in files_path[-1]:
+                        files.append(f'{files_path[0]}\\{file}')
+            elif path.isfile(dir):
+                files = (dir,)
+
+            else:
+                bad_dir_list.append(dir)
+                continue
+
+            for file_path in files:
+                _, file_extension = path.splitext(file_path)
+                if file_extension.startswith('.pys'):
+                    self.decode_file(file_path)
+
+        if bad_dir_list:
+            raise FileExistsError(*bad_dir_list)
 
     def restore_file(self):
         with open(self.file_path, 'wb') as file:
