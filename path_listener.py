@@ -36,6 +36,7 @@ class PathListener:
     def start_listening(self):
         self.observer.schedule(self.event_handler, self.path, recursive=True)
         self.observer.start()
+        print('start watching')
 
     def __del__(self):
         print('stop')
@@ -48,7 +49,7 @@ def test_handler(event):
     print(event.src_path)
 
 if __name__ == '__main__':
-    my_listener = PathListener(test_handler)
+    my_listener = PathListener(test_handler, path='nowy_folder')
     try:
         my_listener.start_listening()
         while True:
