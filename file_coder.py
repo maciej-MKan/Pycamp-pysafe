@@ -1,3 +1,4 @@
+import pathlib
 from os import rename, path, walk, system
 from time import sleep
 from tempfile import TemporaryFile
@@ -24,6 +25,13 @@ class Coder(ABC):
     def restore_file(self):
         with open(self.file_path, 'wb') as fdst:
             fdst.write(self.tmp.read())
+
+    def file_filter(paths: tuple, patterns : tuple = ('*',), patterns_wo : tuple = ('!*',)):
+
+        return(tuple(file_path for file_path in paths\
+            for pattern in patterns\
+            if pathlib.Path(file_path).match(pattern)\
+                and all(not pathlib.Path(file_path).match(wo) for wo in patterns_wo)))
 
     def __enter__(self):
         return self
@@ -170,8 +178,9 @@ class FileDecoder(Coder):
 class FileOpener(Coder):
     """Encrypted file editing class"""
 
-    def execute(self, file_path : str):
+    def execute(self, *file_path : str):
         """main method to procesing file"""
+        file_path = ' '.join(file_path)
         if path.isfile(file_path):
             self.file_path = file_path
 
