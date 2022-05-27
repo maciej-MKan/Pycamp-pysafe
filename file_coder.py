@@ -178,8 +178,9 @@ class FileDecoder(Coder):
 class FileOpener(Coder):
     """Encrypted file editing class"""
 
-    def execute(self, file_path : str):
+    def execute(self, *file_path : str):
         """main method to procesing file"""
+        file_path = ' '.join(file_path)
         if path.isfile(file_path):
             self.file_path = file_path
 
