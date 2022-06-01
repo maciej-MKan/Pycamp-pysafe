@@ -17,6 +17,26 @@ class Coder(ABC):
     def execute(self, file_path):
         pass
 
+    def parse_files(self, dirs):
+        bad_dir_list = []
+        files = []
+
+        for dir in dirs:
+
+            if path.isdir(dir):
+                files_tree = walk(dir)
+                for files_path in files_tree:
+                    for file in files_path[-1]:
+                        files.append(f'{files_path[0]}\\{file}')
+            elif path.isfile(dir):
+                files.append(dir)
+
+            else:
+                bad_dir_list.append(dir)
+                continue
+
+        return tuple(files), bad_dir_list
+
     def backup_file(self):
         #print('backup ', self.file_path)
         with open(self.file_path, 'rb') as fsrc:
@@ -26,11 +46,10 @@ class Coder(ABC):
         with open(self.file_path, 'wb') as fdst:
             fdst.write(self.tmp.read())
 
-    def file_filter(paths: tuple, patterns : tuple = ('*',), patterns_wo : tuple = ('!*',)):
+    def file_filter(self, paths: tuple, patterns : tuple = ('*',), patterns_wo : tuple = ('!*',)):
 
         return(tuple(file_path for file_path in paths\
-            for pattern in patterns\
-            if pathlib.Path(file_path).match(pattern)\
+            for pattern in patterns if pathlib.Path(file_path).match(pattern)\
                 and all(not pathlib.Path(file_path).match(wo) for wo in patterns_wo)))
 
     def __enter__(self):
@@ -85,27 +104,11 @@ class FileEncoder(Coder):
         return new_path
 
     def encode_all(self, dirs):
-        bad_dir_list = []
 
-        for dir in dirs:
-            files = None
-            if path.isdir(dir):
-                files_tree = walk(dir)
-                files = []
-                for files_path in files_tree:
-                    for file in files_path[-1]:
-                        files.append(f'{files_path[0]}\\{file}')
-            elif path.isfile(dir):
-                files = (dir,)
+        files, bad_dir_list = self.parse_files(dirs)
 
-            else:
-                bad_dir_list.append(dir)
-                continue
-
-            for file_path in files:
-                _, file_extension = path.splitext(file_path)
-                if not file_extension.startswith('.pys'):
-                    self.execute(file_path)
+        for file_path in self.file_filter(files, patterns_wo=('*.pys', '*.pys(*)')):
+            self.execute(file_path)
 
         if bad_dir_list:
             raise FileExistsError(*bad_dir_list)
@@ -147,27 +150,10 @@ class FileDecoder(Coder):
 
 
     def decode_all(self, dirs):
-        bad_dir_list = []
+        files, bad_dir_list = self.parse_files(dirs)
 
-        for dir in dirs:
-            files = None
-            if path.isdir(dir):
-                files_tree = walk(dir)
-                files = []
-                for files_path in files_tree:
-                    for file in files_path[-1]:
-                        files.append(f'{files_path[0]}\\{file}')
-            elif path.isfile(dir):
-                files = (dir,)
-
-            else:
-                bad_dir_list.append(dir)
-                continue
-
-            for file_path in files:
-                _, file_extension = path.splitext(file_path)
-                if file_extension.startswith('.pys'):
-                    self.execute(file_path)
+        for file_path in self.file_filter(files, patterns=('*.pys', '*.pys(*)')):
+            self.execute(file_path)
 
         if bad_dir_list:
             raise FileExistsError(*bad_dir_list)
