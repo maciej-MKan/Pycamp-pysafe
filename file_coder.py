@@ -62,12 +62,17 @@ class Coder(ABC):
         """creates a backup of the currently processing file"""
         #print('backup ', self.file_path)
         with open(self.file_path, 'rb') as fsrc:
-            self.tmp.write(fsrc.read())
+            source = fsrc.read()
+            #print('backup ', source)
+            self.tmp.write(source)
+            #print(self.tmp.read())
 
     def restore_file(self):
         """restore file from backup"""
         with open(self.file_path, 'wb') as fdst:
-            fdst.write(self.tmp.read())
+            source = self.tmp.read()
+            #print('restore ', source)
+            fdst.write(source)
 
     @staticmethod
     def file_filter(paths: tuple, patterns : tuple = ('*',), patterns_wo : tuple = ('!*',)):
@@ -98,6 +103,7 @@ class Coder(ABC):
             #print(exc_type, exc_val)
             self.restore_file()
         self.tmp.close()
+        #print('exit')
 
     def __del__(self):
         """method performed during class termination
@@ -141,7 +147,6 @@ class FileEncoder(Coder):
                     file_content = file.read()
                 with open(new_path, 'wb') as file:
                     content = Crypto(self.passwd, self.salt).encrypt(pre_content + file_content)
-                    #print(content)
                     file.write(content)
         else:
             raise TimeoutError('no access to file')

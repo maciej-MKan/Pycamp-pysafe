@@ -7,6 +7,7 @@
         str: content after cryptographic processing
     """
 import base64
+from secrets import token_urlsafe as salt_token
 from cryptography.fernet import Fernet, InvalidToken
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
@@ -34,16 +35,17 @@ class Crypto:
 
     def encrypt(self, content : bytes):
         """encrypt method"""
-
         fernet = Fernet(self.key)
         return fernet.encrypt(content)
 
     def decrypt(self, content : bytes):
         """decrypt method"""
-
         try:
             fernet = Fernet(self.key)
             return fernet.decrypt(content)
         except InvalidToken as err:
-            print(err)
+            #print(err)
             raise TokenError('access denied') from err
+
+def generate_salt():
+    return salt_token(16)

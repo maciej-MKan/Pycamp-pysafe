@@ -1,6 +1,7 @@
 """Module supported user configuration"""
 
 from configparser import ConfigParser
+from cryptography_engine import generate_salt
 from file_coder import FileEncoder, FileDecoder, TokenError
 
 class UserConfig:
@@ -20,7 +21,7 @@ class UserConfig:
         self.config['GENERAL'] = {}
         if self.daemon_mode:
             self.config['GENERAL']['pysafe_folder'] = input('Enter path to PySafe folder : ')
-        self.config['GENERAL']['salt'] = 'ecie_pecie'
+        self.config['GENERAL']['salt'] = generate_salt()
         with open(f'{self.config_file}.pysc', 'w', encoding='utf-8') as configfile:
             self.config.write(configfile)
         self.config.clear()
