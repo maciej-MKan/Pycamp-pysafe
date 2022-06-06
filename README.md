@@ -21,6 +21,8 @@ $ python PySafe.py --help
 ```
 
 ### Run
+At the first run, a configuration file will be generated.
+
 ```
 PySafe [-h] [-d [option: start / stop]] (-e file | -en [file or dir [file or dir ...]] | -de [file or dir [file or dir ...]]) [Password]
 
@@ -43,3 +45,5 @@ optional arguments:
   -de [file or dir [file or dir ...]], --decrypt [file or dir [file or dir ...]]
                                     File or directory to decrypt
 ```
+
+## :exclamation: If you forget your password or lose the configuration file, it will not be possible to decode the data :exclamation: ##
