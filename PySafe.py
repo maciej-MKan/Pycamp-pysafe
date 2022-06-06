@@ -1,12 +1,13 @@
 """Main module of PySafe with argument and configuration logic
 
+    usage: PySafe [-h] [-d [option: start / stop]] (-e file | -en [file or dir [file or dir ...]] | -de [file or dir [file or dir ...]]) [Password]
+
     Raises:
         err: acces denied when password is incorect
     """
 from getpass import getpass
-from os import path
 from typing import Sequence, Any
-from argparse import Namespace, ArgumentParser, FileType, Action, RawTextHelpFormatter
+from argparse import Namespace, ArgumentParser, Action, RawTextHelpFormatter
 
 from file_coder import FileEncoder, FileDecoder, FileOpener, TokenError
 from configurator import UserConfig
@@ -14,7 +15,8 @@ from configurator import UserConfig
 class GetPassword(Action):
     """Class to handle parser actions with hidden password input."""
 
-    def __call__(self, parser: ArgumentParser, namespace: Namespace, values: str or Sequence[Any] or None, option_string: str or None = ...) -> None:
+    def __call__(self, parser: ArgumentParser, namespace: Namespace,\
+        values: str or Sequence[Any] or None, option_string: str or None = ...) -> None:
 
         values = values or getpass()
 
@@ -24,12 +26,12 @@ class GetPassword(Action):
 
 if __name__ == '__main__':
 
-    parser = ArgumentParser(
+    arg_parser = ArgumentParser(
         description="Personal data protector.",
         formatter_class=RawTextHelpFormatter,
         prog='PySafe'
         )
-    parser.add_argument(
+    arg_parser.add_argument(
         'password',
         type=str,
         metavar='Password',
@@ -42,7 +44,7 @@ if __name__ == '__main__':
             Leave blank, and then the program will ask you about it in safe mode.\
             """
         )
-    parser.add_argument(
+    arg_parser.add_argument(
         '-d',
         '--daemon',
         choices=['start', 'stop'],
@@ -51,16 +53,18 @@ if __name__ == '__main__':
         metavar='option: start / stop',
         dest="daemon",
         help="""\
-            To Do help
+            The process of automatically encoding files dumped into a specific folder.
+            The option will be available as you ask nicely :)
+            \
             """
     )
-    option = parser.add_mutually_exclusive_group()
+    option = arg_parser.add_mutually_exclusive_group()
     option.required = True
     option.add_argument(
         '-e',
         '--edit',
         action='extend',
-        nargs='+',
+        nargs=1,
         metavar='file',
         type=str,
         dest='edit',
@@ -78,6 +82,7 @@ if __name__ == '__main__':
         dest='encrypt',
         help="""\
             File or directory to encrypt
+            Can be a list of files and dirs
             """
     )
     option.add_argument(
@@ -90,10 +95,11 @@ if __name__ == '__main__':
         dest='decrypt',
         help="""\
             File or directory to decrypt
+            Can be a list of files and dirs
             """
     )
 
-    args : Namespace = parser.parse_args()
+    args : Namespace = arg_parser.parse_args()
 
     configuration = UserConfig(args.password)
     configuration.daemon_mode = args.daemon
