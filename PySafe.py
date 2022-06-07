@@ -18,9 +18,18 @@ class GetPassword(Action):
     def __call__(self, parser: ArgumentParser, namespace: Namespace,\
         values: str or Sequence[Any] or None, option_string: str or None = ...) -> None:
 
-        values = values or getpass()
+        values = values or self.get_password()
 
         setattr(namespace, self.dest, values)
+
+    def get_password(self):
+        passwd = getpass()
+        print('*' * len(passwd))
+        confirm_passwd = getpass('Confirm password: ')
+        if passwd != confirm_passwd:
+            print('not match!')
+            self.get_password()
+
 
 
 
