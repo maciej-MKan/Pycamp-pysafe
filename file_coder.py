@@ -65,6 +65,7 @@ class Coder(ABC):
             source = fsrc.read()
             #print('backup ', source)
             self.tmp.write(source)
+            self.tmp.seek(0)
             #print(self.tmp.read())
 
     def restore_file(self):
