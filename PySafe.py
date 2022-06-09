@@ -1,3 +1,7 @@
+#!/usr/bin/env python3.8
+# -*- encoding: utf-8 -*-
+# -*- coding: utf-8 -*-
+
 """Main module of PySafe with argument and configuration logic
 
     usage: PySafe [-h] [-d [option: start / stop]] (-e file | -en [file or dir [file or dir ...]] | -de [file or dir [file or dir ...]]) [Password]
